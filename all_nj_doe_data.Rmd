@@ -1,0 +1,636 @@
+---
+title: "get all njdoe data"
+author: "LU HAN"
+date: "April 6, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(devtools)
+devtools::install_github("almartin82/njschooldata")
+library(njschooldata)
+
+```
+
+fetch NJ Assessment data,NJASK(2004-2014), PARCC(2015-2017)
+
+```{r echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE}
+
+
+njask <- map2(.x = rep(2004:2014, each = 6),
+              .y = rep(3:8, 11), 
+              .f = fetch_old_nj_assess) %>% 
+        reduce(bind_rows) 
+
+write_csv(njask, path = "njask_2004-2014.csv")
+```
+
+```{r echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE}
+parcc <- fetch_all_parcc() %>% 
+         reduce(bind_rows) %>% 
+write_csv(path = "PARCC_2015-2017.csv")
+```
+
+fetch enrollment data 1999-2017
+```{r echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE}
+enrollment <- map(.x = 1999:2017, 
+                  .f = fetch_enr) %>% 
+              reduce(bind_rows) %>% 
+              write_csv(path = "enrollment_1999-2017.csv")
+```
+
+fetch graduation rate data 
+```{r echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE}
+grate <- map(.x = 1998:2017,
+             .f = fetch_grate) %>% 
+         reduce(bind_rows) %>% 
+         write_csv(path = "graduation_rate_1998-2017.csv")
+  
+```
+
+fetch post secondary enrollment data
+```{r}
+post_sec <- extract_rc_college_matric(2017)
+```
+```{r}
+essa <- get_essa_file(2017) 
+```
+
+```{r}
+many_tges <- fetch_many_tges(c(1999:2015))
+
+dfg <- fetch_dfg()
+
+total_spending_per_pupil <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG1AA_AVGS') 
+  }
+) %>% 
+reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_spending_per_pupil.csv")
+
+total_budgetary_per_pupil_cost <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG1') 
+  }
+) %>% 
+reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_budgetary_per_pupil_cost.csv")
+
+total_classroom_instruction <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG2')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_classroom_instruction.csv")
+
+total_classroom_salaries_benefits <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG3')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_classroom_salaries_benefits.csv")
+
+
+total_classroom_general_supplies <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG4')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_classroom_general_supplies.csv")
+
+
+total_classroom_purchased_services <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG5')
+  }
+) %>% 
+ reduce(bind_rows)%>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_classroom_purchased_services.csv")
+
+total_support_services <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG6')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_support_services.csv")
+
+tidy_support_services_salaries <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG7')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_support_services_salaries.csv")
+
+tidy_administrative_costs <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG8')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_administrative_costs.csv")
+
+tidy_legal_services <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG8A')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_legal_services.csv")
+
+tidy_admin_salaries <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG9')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_admin_salaries.csv")
+
+tidy_plant_operations_maintenance <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG10')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_plant_operations_maintenance.csv")
+
+tidy_plant_operations_maintenance_salaries <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG11')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_plant_operations_maintenance_salaries.csv")
+
+tidy_food_service <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG12')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_food_service.csv")
+
+tidy_extracurricular <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG13')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_extracurricular.csv")
+
+tidy_personal_services_benefits <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG14')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_personal_services_benefits.csv")
+
+tidy_equipment <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG15')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% write_csv(path = "tidy_equipment.csv")
+
+tidy_ratio_students_to_teachers <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG16')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_ratio_students_to_teachers.csv")
+
+tidy_ratio_students_to_special_service <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG17')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_ratio_students_to_special_service.csv")
+
+tidy_ratio_students_to_administrators <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG18')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_ratio_students_to_administrators.csv")
+
+tidy_ratio_faculty_to_administrators <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG19')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_ratio_faculty_to_administrators.csv")
+
+tidy_budgeted_vs_actual_fund_balance <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG20')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_budgeted_vs_actual_fund_balance.csv")
+
+
+tidy_excess_unreserved_general_fund <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG21')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+ left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+ write_csv(path = "tidy_excess_unreserved_general_fund.csv")
+
+tidy_vitstat <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('VITSTAT_TOTAL')
+  }
+) %>% 
+ reduce(bind_rows) 
+
+
+tidy_vitstat_previous <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('VITSTAT')
+  }
+) %>% 
+ reduce(bind_rows) 
+
+total_vitstat <- bind_rows(tidy_vitstat, tidy_vitstat_previous) %>% left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+ write_csv(path = "total_vistat.csv")
+```
+
+
+```{r}
+many_tges <- fetch_many_tges(c(2016:2017))
+
+dfg <- fetch_dfg()
+
+total_spending_per_pupil <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG1AA_AVGS') 
+  }
+) %>% 
+reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_spending_per_pupil.csv")
+
+total_budgetary_per_pupil_cost <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG1') 
+  }
+) %>% 
+reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_budgetary_per_pupil_cost.csv")
+
+total_classroom_instruction <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG2')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_classroom_instruction.csv")
+
+total_classroom_salaries_benefits <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG3')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_classroom_salaries_benefits.csv")
+
+
+total_classroom_general_supplies <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG4')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_classroom_general_supplies.csv")
+
+
+total_classroom_purchased_services <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG5')
+  }
+) %>% 
+ reduce(bind_rows)%>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_classroom_purchased_services.csv")
+
+total_support_services <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG6')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "total_support_services.csv")
+
+tidy_support_services_salaries <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG7')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_support_services_salaries.csv")
+
+tidy_administrative_costs <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG8')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_administrative_costs.csv")
+
+tidy_legal_services <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG8A')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_legal_services.csv")
+
+tidy_admin_salaries <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG9')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_admin_salaries.csv")
+
+tidy_plant_operations_maintenance <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG10')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_plant_operations_maintenance.csv")
+
+tidy_plant_operations_maintenance_salaries <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG11')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_plant_operations_maintenance_salaries.csv")
+
+tidy_food_service <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG12')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_food_service.csv")
+
+tidy_extracurricular <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG13')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_extracurricular.csv")
+
+tidy_personal_services_benefits <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG14')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_personal_services_benefits.csv")
+
+tidy_equipment <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG15')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% write_csv(path = "tidy_equipment.csv")
+
+tidy_ratio_students_to_teachers <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG16')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_ratio_students_to_teachers.csv")
+
+tidy_ratio_students_to_special_service <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG17')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_ratio_students_to_special_service.csv")
+
+tidy_ratio_students_to_administrators <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG18')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_ratio_students_to_administrators.csv")
+
+tidy_ratio_faculty_to_administrators <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG19')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+  left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_ratio_faculty_to_administrators.csv")
+
+tidy_budgeted_vs_actual_fund_balance <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG20')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+write_csv(path = "tidy_budgeted_vs_actual_fund_balance.csv")
+
+
+tidy_excess_unreserved_general_fund <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('CSG21')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+ left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+ write_csv(path = "tidy_excess_unreserved_general_fund.csv")
+
+tidy_vitstat <- map(
+  .x = many_tges,
+  .f = function(.x) {
+    .x %>% extract2('VITSTAT_TOTAL')
+  }
+) %>% 
+ reduce(bind_rows) %>% 
+ left_join(dfg[, c('district_code', 'dfg')], by = c('district_code')) %>% 
+ write_csv(path = "total_vistat.csv")
+```
+
+
+
+```{r echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE}
+
+many_tges <- map(
+          .x = 2016:2017,
+          .f = fetch_many_tges
+)
+
+measure_names <- c("CSG1AA_AVGS", "CSG1", "CSG2", "CSG3", "CSG4", 
+                  "CSG5", "CSG6", "CSG7", "CSG8", "CSG8A", "CSG9", 
+                  "CSG10", "CSG11", "CSG12", "CSG13", "CSG14", 
+                  "CSG15", "CSG16", "CSG17", "CSG18", "CSG19", 
+                  "CSG20", "CSG21",'VITSTAT_TOTAL')
+
+tges <- map(
+       .x = 1999:2017,
+       .f = function(x){ paste("tges_", x, sep = "")}
+)
+  
+# 
+# extract_measure <- function(measure_name) {
+#   map_df(
+#     many_tges,
+#     function(.x) {
+#       df <- .x %>% extract2(measure_name)
+#       if ('Ratio Rank' %in% names(df)) {
+#         df <- df %>% select(-`Ratio Rank`)
+#       }
+#       if ('Salary Rank' %in% names(df)) {
+#         df <- df %>% select(-`Salary Rank`)
+#       }
+#       df
+#     })
+# }
+
+
+extract_measure <- function(measure_names){
+  all <- map_df(.x = many_tges,
+         .f = extract2(measure_names)) %>% reduce(bind_rows)
+  all
+}
+
+all_tges <- map(measure_names, extract_measure)
+
+
+
+
+```
+get all SGP data
+
+```{r}
+list_of_prs <- map(.x = 2012:2017,
+                   .f = get_one_rc_database)
+
+sgp1 <- list_of_prs[[1]]$SGP %>% rename(county_code = co_code, district_code = dist_code, school_code = sch_code)
+sgp2 <- list_of_prs[[2]]$SGP %>% rename(county_code = co_code, district_code = dist_code, school_code = sch_code)
+sgp3 <- list_of_prs[[3]]$SGP
+sgp4 <- list_of_prs[[4]]$SGP %>% rename(la_sgp= ela_sgp, m_sgp = math_sgp)
+sgp5 <- list_of_prs[[5]]$SGP %>% select(-district_median, -statewide_median) %>% spread(student_growth, school_median) %>% rename(la_sgp = ELA, m_sgp = Math)
+sgp6 <- list_of_prs[[6]]$StudentGrowth %>% filter(student_group == "Schoolwide") %>% select(-met_target, -district_median, -state_median, -student_group) %>% spread(subject, school_median) %>% rename(la_sgp = ELA, m_sgp = Math)
+
+all_sgp <- bind_rows(sgp1, sgp2, sgp3, sgp4, sgp5, sgp6) %>% filter(district_code == 3570) %>% arrange(school_code, end_year)
+
+names <- list_of_prs[[6]]$SchoolHeader %>% filter(district_code == 3570) %>% select(school_code, school_name)
+
+all_sgp <- all_sgp %>% left_join(names, by = "school_code") %>% filter(!is.na(school_name)) %>% write_csv("sgp_2012_2017.csv")
+
+
+```
